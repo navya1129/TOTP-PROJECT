@@ -3,7 +3,8 @@ import pyotp
 import time
 import os
 
-from crypto_utils import decrypt_seed
+from app.crypto_utils import decrypt_seed
+
 
 app = FastAPI()
 

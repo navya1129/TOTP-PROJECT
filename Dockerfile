@@ -23,9 +23,9 @@ RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
 
 COPY --from=builder /usr/local /usr/local
 
-COPY app/ app/
-COPY cron/ /cron/
-COPY scripts/ /scripts/
+COPY app/ /app/app/
+COPY cron/ /app/cron/
+COPY scripts/ /app/scripts/
 
 # Install cron job
 RUN chmod 644 /cron/2fa-cron \
