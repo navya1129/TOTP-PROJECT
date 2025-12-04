@@ -1,64 +1,70 @@
 import requests
 import json
 import sys
-import base64
+import os
 
 API_URL = "https://eajejyq4r3zjioq4rpovy2nthda0vtjqf.lambda-url.ap-south-1.on.aws"
 
-def request_seed(student_id, github_repo_url):
-    try:
-        # 1. Read student public key as bytes
-        with open("app/student_public.pem", "rb") as f:
-            public_key = f.read()
+def find_public_key(possible_paths):
+    """Find student_public.pem in multiple folders"""
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    return None
 
-        # 2. Convert bytes to base64 string (safe for JSON)
-        public_key_b64 = base64.b64encode(public_key).decode('utf-8')
+def request_seed(student_id, github_repo_url, api_url=API_URL):
+    try:
+        # 1. Find public key
+        possible_paths = ["app/student_public.pem", "add/student_public.pem"]
+        public_key_path = find_public_key(possible_paths)
+        if not public_key_path:
+            print("Error: student_public.pem file not found in any of the expected folders:")
+            print(possible_paths)
+            sys.exit(1)
+
+        # 2. Read public key as text and convert line breaks to \n
+        with open(public_key_path, "r") as f:
+            public_key = f.read().strip()
+        public_key_json = public_key.replace("\n", "\\n")
 
         # 3. Prepare JSON payload
         payload = {
             "student_id": student_id,
             "github_repo_url": github_repo_url,
-            "public_key": public_key_b64
+            "public_key": public_key_json
         }
 
-        # --- DEBUG: print payload before sending ---
         print("\n--- Payload being sent ---")
         print(json.dumps(payload, indent=2))
 
         # 4. Send POST request
-        response = requests.post(API_URL, json=payload)
+        response = requests.post(api_url, json=payload, timeout=10)
 
-        # 5. Parse and print response
+        # 5. Parse response
         try:
             data = response.json()
         except json.JSONDecodeError:
-            print("\nError: Response is not valid JSON")
+            print("Error: Response is not valid JSON")
             print("Raw Response:", response.text)
             return
 
         print("\n--- Full API Response ---")
         print(data)
 
-        # 6. Check for encrypted_seed
         if "encrypted_seed" not in data:
             print("\nError: 'encrypted_seed' not found in response.")
             print("Suggestions:")
-            print(" - Check that your student ID is correct and matches server records.")
-            print(" - Check that the GitHub repo URL is exactly what the server expects.")
-            print(" - Ensure your public key is registered with the server (if required).")
-            print(" - If you recently changed keys or repo, try re-registering them.")
+            print(" - Ensure student_id matches exactly")
+            print(" - Use the exact GitHub repo URL you will submit")
+            print(" - Ensure your public key is registered if required")
             return
 
-        # 7. Save encrypted seed to file
-        encrypted_seed = data["encrypted_seed"]
+        # 6. Save encrypted seed
         with open("encrypted_seed.txt", "w") as f:
-            f.write(encrypted_seed)
+            f.write(data["encrypted_seed"])
 
         print("\nEncrypted seed saved to 'encrypted_seed.txt' successfully!")
 
-    except FileNotFoundError:
-        print("Error: student_public.pem file not found in 'app/' folder")
-        sys.exit(1)
     except Exception as e:
         print("Unexpected Error:", e)
         sys.exit(1)
@@ -66,6 +72,6 @@ def request_seed(student_id, github_repo_url):
 
 # -------- RUN HERE --------
 student_id = "23A91A1252"
-github_repo_url = "https://github.com/navya1129/TOTP-PROJECT"
+github_repo_url = "https://github.com/navya1129/TOTP-PROJECT"  # Use exact URL you will submit
 
 request_seed(student_id, github_repo_url)
