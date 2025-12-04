@@ -2,14 +2,18 @@ services:
   app:
     build: .
     container_name: totp-backend
-
-    # Only mount folders you actually need, do NOT mount ./app over /app
     volumes:
-      - ./cron:/app/cron      # if you need to edit cron files locally
+      - ./cron:/app/cron
       - ./scripts:/app/scripts
-
+      - ./student_private.pem:/app/student_private.pem:ro
+      - ./student_public.pem:/app/student_public.pem:ro
+      - ./instructor_public.pem:/app/instructor_public.pem:ro
     ports:
       - "8080:8080"
-
-    # Optional: restart policy
+    environment:
+      - TZ=UTC
     restart: unless-stopped
+
+volumes:
+  seed-data:
+  cron-output:
