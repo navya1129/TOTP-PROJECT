@@ -24,7 +24,7 @@ COPY --from=builder /usr/local /usr/local
 COPY app/ /app/
 COPY cron/ /app/cron/
 COPY scripts/ /app/scripts/
-
+COPY request_seed.py /app/
 # Set up cron job (optional)
 RUN chmod 644 /app/cron/2fa-cron && crontab /app/cron/2fa-cron
 
