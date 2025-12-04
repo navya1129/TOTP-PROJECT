@@ -5,7 +5,8 @@ API_URL = "https://eajejyq4r3zjioq4rpovy2nthda0vtjqf.lambda-url.ap-south-1.on.aw
 
 def request_seed(student_id, github_repo_url):
     # 1. Read student public key
-    with open("student_public.pem", "r") as f:
+    with open("add/student_public.pem", "r") as f:
+
         public_key = f.read()
 
     # 2. Prepare JSON payload
