@@ -11,7 +11,7 @@ def request_seed(student_id, github_repo_url):
         with open("app/student_public.pem", "rb") as f:
             public_key = f.read()
 
-        # 2. Convert bytes to string (base64 is safer for JSON)
+        # 2. Convert bytes to base64 string (safe for JSON)
         public_key_b64 = base64.b64encode(public_key).decode('utf-8')
 
         # 3. Prepare JSON payload
@@ -20,7 +20,11 @@ def request_seed(student_id, github_repo_url):
             "github_repo_url": github_repo_url,
             "public_key": public_key_b64
         }
-        print("Payload being sent:", json.dumps(payload, indent=2))
+
+        # --- DEBUG: print payload before sending ---
+        print("\n--- Payload being sent ---")
+        print(json.dumps(payload, indent=2))
+
         # 4. Send POST request
         response = requests.post(API_URL, json=payload)
 
@@ -28,28 +32,35 @@ def request_seed(student_id, github_repo_url):
         try:
             data = response.json()
         except json.JSONDecodeError:
-            print("Error: Response is not valid JSON")
+            print("\nError: Response is not valid JSON")
             print("Raw Response:", response.text)
             return
 
-        print("Full API Response:", data)
+        print("\n--- Full API Response ---")
+        print(data)
 
+        # 6. Check for encrypted_seed
         if "encrypted_seed" not in data:
-            print("Error: 'encrypted_seed' not found in response. Check student ID, repo URL, and public key.")
+            print("\nError: 'encrypted_seed' not found in response.")
+            print("Suggestions:")
+            print(" - Check that your student ID is correct and matches server records.")
+            print(" - Check that the GitHub repo URL is exactly what the server expects.")
+            print(" - Ensure your public key is registered with the server (if required).")
+            print(" - If you recently changed keys or repo, try re-registering them.")
             return
 
-        # 6. Save encrypted seed to file
+        # 7. Save encrypted seed to file
         encrypted_seed = data["encrypted_seed"]
         with open("encrypted_seed.txt", "w") as f:
             f.write(encrypted_seed)
 
-        print("Encrypted seed saved to encrypted_seed.txt")
+        print("\nEncrypted seed saved to 'encrypted_seed.txt' successfully!")
 
     except FileNotFoundError:
         print("Error: student_public.pem file not found in 'app/' folder")
         sys.exit(1)
     except Exception as e:
-        print("Error:", e)
+        print("Unexpected Error:", e)
         sys.exit(1)
 
 
