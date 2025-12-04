@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    container_name: totp-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - seed-data:/data
+      - cron-output:/cron
+      - ./app/student_private.pem:/app/student_private.pem:ro
+      - ./app/student_public.pem:/app/student_public.pem:ro
+      - ./app/instructor_public.pem:/app/instructor_public.pem:ro
+    environment:
+      TZ: UTC
+    restart: unless-stopped
+
+volumes:
+  seed-data:
+  cron-output:

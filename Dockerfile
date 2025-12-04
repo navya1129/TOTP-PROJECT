@@ -1,17 +1,40 @@
-# Step 1: Use Python base image
-FROM python:3.11-slim
+# -------- Stage 1: Builder --------
+FROM python:3.11-slim AS builder
 
-# Step 2: Set working directory
 WORKDIR /app
 
-# Step 3: Copy requirements
-COPY requirements.txt .
-
-# Step 4: Install dependencies
+COPY app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Step 5: Copy project code
-COPY . .
+# -------- Stage 2: Runtime --------
+FROM python:3.11-slim
 
-# Step 6: Run script
-CMD ["python", "otp_test.py"]
+ENV TZ=UTC
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    cron \
+    tzdata \
+ && rm -rf /var/lib/apt/lists/*
+
+# Set timezone
+RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
+ && dpkg-reconfigure -f noninteractive tzdata
+
+COPY --from=builder /usr/local /usr/local
+
+COPY app/ app/
+COPY cron/ /cron/
+COPY scripts/ /scripts/
+
+# Install cron job
+RUN chmod 644 /cron/2fa-cron \
+ && crontab /cron/2fa-cron
+
+# Create volumes
+RUN mkdir -p /data /cron
+VOLUME ["/data", "/cron"]
+
+EXPOSE 8080
+
+CMD cron && uvicorn app.main:app --host 0.0.0.0 --port 8080
