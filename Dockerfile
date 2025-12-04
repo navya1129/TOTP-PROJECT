@@ -35,4 +35,5 @@ VOLUME ["/data", "/cron"]
 EXPOSE 8080
 
 # Run cron in background and start FastAPI (if you have main.py)
-CMD ["sh", "-c", "cron && python request_seed.py && uvicorn main:app --host 0.0.0.0 --port 8080"]
+CMD ["sh", "-c", "python /app/request_seed.py && uvicorn main:app --host 0.0.0.0 --port 8080"]
+
