@@ -12,7 +12,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install cron and timezone (if needed)
+# Install cron and timezone tools
 RUN apt-get update && apt-get install -y cron tzdata && rm -rf /var/lib/apt/lists/* \
  && ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
  && dpkg-reconfigure -f noninteractive tzdata
@@ -20,13 +20,14 @@ RUN apt-get update && apt-get install -y cron tzdata && rm -rf /var/lib/apt/list
 # Copy dependencies from builder
 COPY --from=builder /usr/local /usr/local
 
-# Copy app, cron, scripts
+# Copy app, scripts, and cron
 COPY app/ /app/
-COPY cron/ /app/cron/
 COPY scripts/ /app/scripts/
+COPY cron/ /app/cron/  # Make sure this folder exists on host
 
-# Set up cron job (optional)
-RUN chmod 644 /app/cron/2fa-cron && crontab /app/cron/2fa-cron
+# Set up cron job
+RUN chmod 644 /app/cron/2fa-cron \
+ && crontab /app/cron/2fa-cron
 
 # Create volumes for persistent data
 RUN mkdir -p /data /cron
@@ -34,5 +35,5 @@ VOLUME ["/data", "/cron"]
 
 EXPOSE 8080
 
-# Run cron in background and start FastAPI (if you have main.py)
-CMD ["sh", "-c", "cron && python request_seed.py && uvicorn main:app --host 0.0.0.0 --port 8080"]
+# Start cron in background and FastAPI
+CMD cron && uvicorn main:app --host 0.0.0.0 --port 8080
