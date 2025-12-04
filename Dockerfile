@@ -24,5 +24,7 @@ COPY app/ /app/
 
 # Copy scripts
 COPY scripts/ /scripts/
+# Start cron and keep container alive
+CMD ["sh", "-c", "cron && tail -f /dev/null"]
 
 # Cop
