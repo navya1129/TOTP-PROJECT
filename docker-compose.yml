@@ -4,18 +4,13 @@ services:
     container_name: totp-backend
 
     volumes:
-      # Mount cron file into correct location
       - ./cron/2fa-cron:/etc/cron.d/2fa-cron:ro
-
-      # Mount scripts
       - ./scripts:/scripts:ro
 
-      # Mount keys
       - ./app/student_private.pem:/app/student_private.pem:ro
       - ./app/student_public.pem:/app/student_public.pem:ro
       - ./app/instructor_public.pem:/app/instructor_public.pem:ro
 
-      # Persistent volumes
       - seed-data:/data
       - cron-output:/cron
 
