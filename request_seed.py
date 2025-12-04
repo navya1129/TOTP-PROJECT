@@ -18,12 +18,15 @@ def request_seed(student_id, github_repo_url):
 
     # 3. Send POST request
     response = requests.post(API_URL, json=payload)
+data = response.json()
 
-    # 4. Parse the result
-    data = response.json()
-    print("API Response:", data)
+print("Full API Response:", data)
 
-    encrypted_seed = data["encrypted_seed"]
+if "encrypted_seed" not in data:
+    print("Error: 'encrypted_seed' not in response. Check student ID, repo URL, and public key.")
+    exit(1)
+
+encrypted_seed = data["encrypted_seed"]
 
     # 5. Save to file
     with open("encrypted_seed.txt", "w") as f:
