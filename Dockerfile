@@ -1,15 +1,9 @@
-# ------------ Stage 1: Build environment --------------
 FROM python:3.10-slim AS builder
-
 WORKDIR /app
-
 COPY app/requirements.txt .
 RUN pip install --user -r requirements.txt
 
-
-# ------------ Stage 2: Runtime image -------------------
 FROM python:3.10-slim
-
 WORKDIR /app
 
 # Install cron
@@ -21,10 +15,13 @@ ENV PATH=/root/.local/bin:$PATH
 
 # Copy python app
 COPY app/ /app/
-
-# Copy scripts
 COPY scripts/ /scripts/
-# Start cron and keep container alive
-CMD ["sh", "-c", "cron && tail -f /dev/null"]
 
-# Cop
+# Set permissions for cron job (cron REQUIRES 0644)
+RUN chmod 0644 /etc/cron.d/2fa-cron || true
+
+# Register cron job
+RUN crontab /etc/cron.d/2fa-cron
+
+# Start cron + keep container running
+CMD ["sh", "-c", "cron -f"]
