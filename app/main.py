@@ -1,18 +1,14 @@
 from fastapi import FastAPI, HTTPException
-import time
 import os
+import time
 
-from crypto_utils import (
-    decrypt_seed,
-    generate_totp_code,
-    verify_totp_code
-)
+from crypto_utils import decrypt_seed, generate_totp_code, verify_totp_code
 
 app = FastAPI()
 
+# Paths inside container
 DATA_PATH = "/data/seed.txt"
-PRIVATE_KEY_PATH = "/add/student_verify_private"   # very important
-
+PRIVATE_KEY_PATH = "/app/student_private.pem"
 
 # ------------------------
 # POST /decrypt-seed
@@ -25,8 +21,9 @@ def decrypt_seed_api(body: dict):
     try:
         seed_hex = decrypt_seed(body["encrypted_seed"], PRIVATE_KEY_PATH)
     except Exception as e:
-        raise HTTPException(500, "Decryption failed")
+        raise HTTPException(500, str(e))
 
+    # Save decrypted seed to persistent volume
     os.makedirs("/data", exist_ok=True)
     with open(DATA_PATH, "w") as f:
         f.write(seed_hex)

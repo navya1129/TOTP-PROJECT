@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   app:
     build: .
@@ -7,9 +9,7 @@ services:
     volumes:
       - seed-data:/data
       - cron-output:/cron
-      - ./app/student_private.pem:/app/student_private.pem:ro
-      - ./app/student_public.pem:/app/student_public.pem:ro
-      - ./app/instructor_public.pem:/app/instructor_public.pem:ro
+      - ./app:/app:ro   # mounts entire app folder
     environment:
       TZ: UTC
     restart: unless-stopped

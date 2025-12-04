@@ -23,8 +23,8 @@ RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
 
 COPY --from=builder /usr/local /usr/local
 
-
-COPY app/ /app/app/
+# Copy app, scripts, cron
+COPY app/ /app/
 COPY cron/ /app/cron/
 COPY scripts/ /app/scripts/
 
@@ -38,4 +38,5 @@ VOLUME ["/data", "/cron"]
 
 EXPOSE 8080
 
-CMD cron && uvicorn app.main:app --host 0.0.0.0 --port 8080
+# Run cron in background and start FastAPI
+CMD cron && uvicorn main:app --host 0.0.0.0 --port 8080
