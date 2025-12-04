@@ -24,7 +24,7 @@ def request_seed(student_id, github_repo_url, api_url=API_URL):
     # 2️⃣ Read public key
     with open(public_key_path, "r") as f:
         public_key = f.read().strip()
-    public_key_json = public_key.replace("\n", "\\n")
+    public_key_json = public_key
 
     # 3️⃣ Prepare payload
     payload = {
