@@ -1,17 +1,29 @@
+version: "3.9"
+
 services:
   app:
     build: .
     container_name: totp-backend
+
+    # Volumes
     volumes:
-      - ./cron:/app/cron
-      - ./scripts:/app/scripts
-      - ./student_private.pem:/app/student_private.pem:ro
-      - ./student_public.pem:/app/student_public.pem:ro
-      - ./instructor_public.pem:/app/instructor_public.pem:ro
+      - ./cron:/app/cron            # cron files
+      - ./scripts:/app/scripts      # scripts folder
+      - ./app/student_private.pem:/app/student_private.pem:ro
+      - ./app/student_public.pem:/app/student_public.pem:ro
+      - ./app/instructor_public.pem:/app/instructor_public.pem:ro
+      - seed-data:/data             # persistent seed storage
+      - cron-output:/cron           # persistent cron output
+
+    # Ports
     ports:
       - "8080:8080"
+
+    # Environment
     environment:
       - TZ=UTC
+
+    # Restart policy
     restart: unless-stopped
 
 volumes:
