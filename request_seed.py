@@ -20,7 +20,7 @@ def request_seed(student_id, github_repo_url):
             "github_repo_url": github_repo_url,
             "public_key": public_key_b64
         }
-
+        print("Payload being sent:", json.dumps(payload, indent=2))
         # 4. Send POST request
         response = requests.post(API_URL, json=payload)
 
