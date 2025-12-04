@@ -23,13 +23,14 @@ RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
 
 COPY --from=builder /usr/local /usr/local
 
+
 COPY app/ /app/app/
 COPY cron/ /app/cron/
 COPY scripts/ /app/scripts/
 
 # Install cron job
-RUN chmod 644 /cron/2fa-cron \
- && crontab /cron/2fa-cron
+RUN chmod 644 /app/cron/2fa-cron \
+    && crontab /app/cron/2fa-cron
 
 # Create volumes
 RUN mkdir -p /data /cron
