@@ -1,39 +1,39 @@
-# -------- Stage 1: Builder --------
-FROM python:3.11-slim AS builder
+# ------------ Stage 1: Build the Python environment --------------
+FROM python:3.10-slim AS builder
 
 WORKDIR /app
 
-# Copy requirements and install dependencies
 COPY app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --user -r requirements.txt
 
-# -------- Stage 2: Runtime --------
-FROM python:3.11-slim
+
+# ------------ Stage 2: Final Runtime Image ------------------------
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install cron and timezone
-RUN apt-get update && apt-get install -y cron tzdata && rm -rf /var/lib/apt/lists/* \
- && ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
- && dpkg-reconfigure -f noninteractive tzdata
+# Copy installed Python packages
+COPY --from=builder /root/.local /root/.local
 
-# Copy dependencies from builder
-COPY --from=builder /usr/local /usr/local
+ENV PATH=/root/.local/bin:$PATH
 
-# Copy app folder and request_seed.py from root
+# Copy application files
 COPY app/ /app/
-COPY request_seed.py /app/
-COPY cron/ /app/cron/
-COPY scripts/ /app/scripts/
 
-# Set up cron job
-RUN chmod 644 /app/cron/2fa-cron && crontab /app/cron/2fa-cron
+# Copy scripts
+COPY scripts/ /scripts/
 
-# Create volumes for persistent data
-RUN mkdir -p /data /cron
-VOLUME ["/data", "/cron"]
+# Copy cron job
+COPY cron/2fa-cron /etc/cron.d/2fa-cron
 
-EXPOSE 8080
+# Apply correct permissions for cron
+RUN chmod 0644 /etc/cron.d/2fa-cron
 
-# Run cron in background, request_seed.py, and FastAPI
-CMD ["sh", "-c", "cron && python /app/request_seed.py && uvicorn main:app --host 0.0.0.0 --port 8080"]
+# Enable the cron job
+RUN crontab /etc/cron.d/2fa-cron
+
+# Create logs directory
+RUN mkdir -p /logs
+
+# Start cron + main app
+CMD cron && python3 main.py
