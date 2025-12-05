@@ -4,7 +4,7 @@ services:
     container_name: totp-backend
 
     volumes:
-      - ./cron/2fa-cron:/etc/cron.d/2fa-cron:ro
+      - ./cron:/cron:ro
       - ./scripts:/scripts:ro
 
       - ./app/student_private.pem:/app/student_private.pem:ro
