@@ -12,7 +12,7 @@ services:
       - ./app/instructor_public.pem:/app/instructor_public.pem:ro
 
       - seed-data:/data
-      - cron-output:/cron
+      # - cron-output:/cron
 
     ports:
       - "8080:8080"
@@ -24,4 +24,4 @@ services:
 
 volumes:
   seed-data:
-  cron-output:
+  # cron-output:
